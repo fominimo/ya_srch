@@ -1,30 +1,32 @@
+import unittest
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 
 
-class YandexTest:
-
-    def __init__(self, target, use_ssl=True):
-        self.target = target
-        self.protocol = "https" if use_ssl else "http"
+class PythonYandexText(unittest.TestCase):
+    def setUp(self):
         self.driver = webdriver.Firefox()
 
-    def process(self):
-        self.driver.get(f"{self.protocol}://{self.target}")
-        assert "Яндекс" in self.driver.title
-        search = self.driver.find_element('class name', 'input__control')
-        # assert not search or search is None
+    def test_search_text_in_yandex(self):
+        driver = self.driver
+        # Переход на яндекс и проверка
+        driver.get('https://yandex.ru')
+        self.assertIn("Яндекс", driver.title)
+
+        # ввод 'Тензор' в поиске
+        search = driver.find_element('class name', 'input__control')
         search.send_keys("Тензор")
-        # assert not self.driver.find_element('class name', 'mini-suggest__overlay_visible')
         search.send_keys(Keys.ENTER)
-        # assert not self.driver.find_element('id', 'search-result')
         sleep(2)
+
+        # проверка что в поиске первые 5 результатов включают искомый запрос
         results = self.driver.find_elements('class name', 'serp-item')
         assert [True for i in results[0:5] if 'tensor.ru' in i.find_element('class name', 'link').get_attribute("href")]
-        self.driver.close()
+
+    def tearDown(self):
+        self.driver.quit()
 
 
-if __name__ == '__main__':
-    parser = YandexTest('yandex.ru')
-    parser.process()
+if __name__ == "__main__":
+    unittest.main()
